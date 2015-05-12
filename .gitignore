@@ -5,7 +5,9 @@ pkg/
 .ruby-version
 Gemfile.lock
 spec/internal/db/*.sqlite3
+spec/internal/db/*.sqlite
 spec/internal/db/*.sqlite3-journal
+spec/internal/db/*.sqlite-journal
 spec/internal/log/*.log
 spec/internal/tmp/
 spec/internal/.sass-cache
