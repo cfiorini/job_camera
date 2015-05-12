@@ -14,7 +14,7 @@ class CreateJobCameraLogs < ActiveRecord::Migration
 
       t.timestamp :failed_at
       t.timestamp :retried_at
-      t.integer   :retry_counter, defaut: 0
+      t.integer   :retry_counter, default: 0
       t.text      :error_message
       t.string    :error_class
 
