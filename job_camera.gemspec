@@ -9,9 +9,9 @@ Gem::Specification.new do |s|
   s.version     = JobCamera::VERSION
   s.authors     = ["Claudio Fiorini"]
   s.email       = ["claudio.fiorini@gmail.com"]
-  s.homepage    = "TODO"
-  s.summary     = "TODO: Summary of JobCamera."
-  s.description = "TODO: Description of JobCamera."
+  s.homepage    = "https://github.com/cfiorini/job_camera"
+  s.summary     = "ActiveJob execution logging"
+  s.description = "ActiveJob execution logging"
   s.license     = "MIT"
 
   s.files = Dir["{lib}/**/*", "MIT-LICENSE", "Rakefile", "README.md"]
