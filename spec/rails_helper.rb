@@ -5,7 +5,7 @@ require 'spec_helper'
 
 require 'combustion'
 Combustion.initialize! :active_record, :active_job  do
-  #config.active_job.queue_adapter = :inline
+  config.active_job.queue_adapter = :test
 end
 
 require 'rspec/rails'

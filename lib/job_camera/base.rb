@@ -1,9 +1,13 @@
+require 'job_camera/jobs/job_camera_delete'
+
 module JobCamera
   module Base
     extend ::ActiveSupport::Concern
     include ::ActiveSupport::Callbacks
 
     module ClassMethods
+
+      cattr_accessor :job_camera_delete
 
       #
       # Options
@@ -12,10 +16,11 @@ module JobCamera
       # :rescue     [TypeError]
       # :logger     nil
       # :notifier
+      # :delete_on_complete nil or 5.seconds
       def job_camera(options = {})
         send :include, InstanceMethods
 
-        @jc_options = options.dup
+        @jc_options = options.dup if options.present?
 
         self.logger = @jc_options[:logger] if @jc_options.has_key?(:logger)
 
@@ -24,19 +29,30 @@ module JobCamera
         end if @jc_options.has_key?(:rescue) && @jc_options[:rescue].size > 0
 
         @jc_options[:enqueue].each do |action|
-          set_callback :enqueue, action, -> { self.camera_log_object_manager(:"#{action}_enqueue") }
+          set_callback :enqueue, action, -> {
+            self.camera_log_object_manager(:"#{action}_enqueue")
+          }
         end if @jc_options.has_key?(:enqueue) && @jc_options[:enqueue].size > 0
 
         @jc_options[:perform].map do |action|
-          set_callback :perform, action, -> { self.camera_log_object_manager(:"#{action}_perform") }
-        end if @jc_options.has_key?(:enqueue) && @jc_options[:perform].size > 0
+          set_callback :perform, action, -> {
+            self.camera_log_object_manager(:"#{action}_perform")
+          }
+        end if @jc_options.has_key?(:perform) && @jc_options[:perform].size > 0
+
+        set_callback :perform, :after, -> {
+
+          self.class.job_camera_delete = JobCamera::JobCameraDelete
+                                             .set(wait: self.job_camera[:delete_on_complete])
+                                             .perform_later(self.camera_log_object_get)
+
+        }, if: -> { self.job_camera[:delete_on_complete] != nil }
 
       end
 
       def job_camera_from_part
         @jc_options
       end
-
     end
 
 
@@ -47,7 +63,7 @@ module JobCamera
       end
 
       def camera_log_object_get
-        JobCamera::JobCameraLog.find_or_initialize_by(job_id: self.job_id,
+        JobCamera::JobCameraLog.find_or_create_by(job_id: self.job_id,
                                              job_name: self.class.to_s,
                                              queue_name: self.queue_name)
       end
@@ -59,8 +75,10 @@ module JobCamera
         jc_object.status = callback_name
         jc_object.scheduled_at ||= Time.at(self.scheduled_at) if self.scheduled_at
 
-        jc_object.increment(:retry_counter) if callback_name == :before_perform
-        jc_object.start_time = Time.now if callback_name == :before_perform
+        if callback_name == :before_perform
+          jc_object.increment(:retry_counter)
+          jc_object.start_time = Time.now
+        end
 
         jc_object.end_time = Time.now if callback_name == :after_perform
 

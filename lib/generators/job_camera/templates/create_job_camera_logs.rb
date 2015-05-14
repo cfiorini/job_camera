@@ -3,7 +3,7 @@ class CreateJobCameraLogs < ActiveRecord::Migration
     create_table :job_camera_logs do |t|
       t.string    :job_id,   null: false
       t.string    :job_name, null: false
-      t.string    :status,   null: false
+      t.string    :status,   null: true
       t.text      :arguments
       t.string    :queue_name
 

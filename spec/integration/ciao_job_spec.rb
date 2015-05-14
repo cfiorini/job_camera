@@ -15,6 +15,11 @@ describe CiaoJob do
       expect(JobCamera::JobCameraLog.count).to be > 0
     end
 
+    it 'delete_on_complete nil' do
+      jc.perform_now([])
+      expect(jc.job_camera_delete).to be_nil
+    end
+
   end
 
   describe '.perform_later' do
@@ -30,6 +35,11 @@ describe CiaoJob do
                                                                          class_name)
 
       expect(res).to be_kind_of(JobCamera::JobCameraLog)
+    end
+
+    it 'delete_on_complete nil' do
+      jc.perform_later([])
+      expect(jc.job_camera_delete).to be_nil
     end
 
   end
